@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Patient Photos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .alert {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f2f2f2;
+      border: 1px solid #ccc;
+      display: none;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 20px;
+      background-color: #333;
+      color: white;
+    }
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .navbar a:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="upload.html">Upload</a>
+  <a href="download.html">Download</a>
+</div>
+
+<div class="container">
+  <h2>Upload Patient Photos</h2>
+  <form id="uploadForm">
+    <input type="text" id="name" placeholder="Enter Patient's Name" required />
+    <input type="file" id="photo" accept="image/*" multiple required />
+    <button type="submit">Upload Photos</button>
+  </form>
+  <div class="alert" id="alertBox"></div>
+</div>
+
+<script>
+  const form = document.getElementById('uploadForm');
+  const alertBox = document.getElementById('alertBox');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const photos = document.getElementById('photo').files;
+
+    if (!name || photos.length === 0) {
+      alertBox.textContent = 'Please fill in all fields and select at least one photo.';
+      alertBox.style.display = 'block';
+      return;
+    }
+
+    const newPhotos = [];
+    const reader = new FileReader();
+
+    let currentIndex = 0;
+
+    reader.onloadend = function () {
+      const photoData = reader.result;
+      newPhotos.push({ name, photoData, date: new Date().toISOString() });
+
+      // Process the next file if any
+      currentIndex++;
+      if (currentIndex < photos.length) {
+        reader.readAsDataURL(photos[currentIndex]);
+      } else {
+        // All files have been processed
+        let storedPhotos = JSON.parse(localStorage.getItem('photos')) || [];
+
+        // Add the new photos to the array
+        storedPhotos = [...newPhotos, ...storedPhotos];
+
+        // Keep only the most recent 10 photos
+        if (storedPhotos.length > 10) {
+          storedPhotos = storedPhotos.slice(0, 10);
+        }
+
+        // Save updated photos list to localStorage
+        localStorage.setItem('photos', JSON.stringify(storedPhotos));
+
+        alertBox.textContent = 'Photos uploaded successfully!';
+        alertBox.style.display = 'block';
+      }
+    };
+
+    // Start reading the first file
+    reader.readAsDataURL(photos[currentIndex]);
+  });
+</script>
+
+</body>
+</html>
